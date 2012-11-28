@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <errno.h>
 #include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 static void usage(char *progname)
 {
@@ -24,12 +26,12 @@ static void open_socket(int port)
     // open socket
     if ((listenfd = socket(AF_INET, SOCK_STREAM, 0) < 0)) {
 	fprintf(stderr, "Error opening socket.\n");
-	exit(EXIT_FAILURE);
+	exit(1);
     }
     
     if (setsockopt(listenfd, SOL,SOCKET, SO_REUSEADDR, (const void *)&optval, sizeof(int)) < 0) {
 	fprintf(stderr, "Error in socket.\n");
-	exit(EXIT_FAILURE);
+	exit(1);
     }
 
     bzero((char *)&aserveraddr, sizeof(serveraddr));
@@ -38,12 +40,12 @@ static void open_socket(int port)
     serveraddr.sin_port = htons((unsigned short) port);
     if (bind(listenfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0) {
 	fprintf(stderr, "Error binding socket address to port.\n");
-	exit(EXIT_FAILURE);
+	exit(1);
     }
 
     if (listen(listenfd, LISTENQ) < 0) {
 	fprintf(stderr, "Error listening to socket.\n");
-	exit(EXIT_FAILURE);
+	exit(1);
     }
 
     return listenfd;    
@@ -69,10 +71,10 @@ int main(int argc, char **argv)
 	    switch (errno) {
 	    case ERANGE:
 		printf("Please enter a valid port number");
-		return EXIT_FAILURE;
+		return -1;
 	    case EINVAL:
 		printf("Please enter a valid port number");
-		return EXIT_FAILURE;
+		return -1;
 	    }
 
 	    printf("%lu\n", port);
@@ -93,8 +95,41 @@ int main(int argc, char **argv)
 	}
     }
 
-    int listenfd, connfd, clientlen;
-    listenfd = open_listfd(port);
+    int socketfd, connfd;
+    struct sockaddr_in serveraddr;
+    struct sockaddr_in clientaddr;
+
+    // open socket
+    if ((socketfd = socket(AF_INET, SOCK_STREAM, 0) < 0)) {
+	fprintf(stderr, "Error opening socket.\n");
+	exit(1);
+    }
+
+    if (setsockopt(listenfd, SOL,SOCKET, SO_REUSEADDR, (const void *)&optval, sizeof(int)) < 0) {
+	fprintf(stderr, "Error in socket.\n");
+	exit(1);
+    }
+    
+    bzero((char *)&aserveraddr, sizeof(serveraddr));
+    serveraddr.sin_family = AF_INET;
+    serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    serveraddr.sin_port = htons((unsigned short) port);
+    
+    if (bind(socketfd, my_addr, sizeof(sockaddr_in)) < 0) {
+	fprintf(stderr, "Error binding socket.\n");
+	exit(1);
+    }
+
+    if (listen(socket, LISTENQ) < 0) {
+	fprintf(stderr, "Error listening to socket.\n");
+	exit(1);
+    }
+
+    for (;;) {
+	connfd = accept(socket, clientaddr, &sizeof(clientaddr));
+	// run connfd
+	// close connection if non-persistent
+    }
 
     return 0;
 }
