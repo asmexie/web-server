@@ -61,19 +61,21 @@ static void usage(char *progname)
 
 int main(int argc, char **argv)
 {
-    long port;
+    if (argc < 2)
+	usage(argv[0]);
     
+    long port;
+
     char c;
     while ((c = getopt(argc, argv, "p:r:R:")) != -1) {
 	
 	switch (c) {
-
+	    
 	case 'h':
 	    usage(argv[0]);
 	    break;
 
 	case 'p': {
-
 	    char *garbage = NULL;
 	    port = strtol(optarg, &garbage, 10);
 
@@ -85,9 +87,6 @@ int main(int argc, char **argv)
 		printf("Please enter a valid port number");
 		return -1;
 	    }
-
-	    //printf("%lu\n", port);
-	    // handle port here
 
 	    break;
 	}
@@ -135,15 +134,12 @@ int main(int argc, char **argv)
     }
 
     for (;;) {
-
 	// new connected socket
 	int clientlen = sizeof(clientaddr);
 	if ((connfd = accept(socketfd, (struct sockaddr *)&clientaddr, (socklen_t *)&clientlen) < 0)) {
 	    fprintf(stderr, "Error acceping connection.\n");
 	    exit(1);
 	}
-	
-	printf("I think this works");
 	close(connfd);
 	// run connfd
 	// close connection if non-persistent
