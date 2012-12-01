@@ -1,3 +1,9 @@
+/*
+ * A multithreaded HTTP webserver
+ * Project 5
+ * Nayef Copty & K Al Najar
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -5,6 +11,7 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include "rio.h"
 
 static void usage(char *progname)
 {
@@ -18,7 +25,7 @@ static void usage(char *progname)
     exit(EXIT_SUCCESS);
 }
 
-static void open_socket(int port)
+/*static void open_socket(int port)
 {
     int listenfd, optval = 1;
     struct sockaddr_in serveraddr;
@@ -49,11 +56,13 @@ static void open_socket(int port)
     }
 
     return listenfd;    
-}
+    }*/
 	   
 
 int main(int argc, char **argv)
 {
+    long port;
+    
     char c;
     while ((c = getopt(argc, argv, "p:r:R:")) != -1) {
 	
@@ -66,7 +75,7 @@ int main(int argc, char **argv)
 	case 'p': {
 
 	    char *garbage = NULL;
-	    long port = strtol(optarg, &garbage, 10);
+	    port = strtol(optarg, &garbage, 10);
 
 	    switch (errno) {
 	    case ERANGE:
@@ -77,7 +86,7 @@ int main(int argc, char **argv)
 		return -1;
 	    }
 
-	    printf("%lu\n", port);
+	    //printf("%lu\n", port);
 	    // handle port here
 
 	    break;
@@ -95,38 +104,47 @@ int main(int argc, char **argv)
 	}
     }
 
-    int socketfd, connfd;
+    int socketfd, connfd, optval = 1;
     struct sockaddr_in serveraddr;
     struct sockaddr_in clientaddr;
 
     // open socket
-    if ((socketfd = socket(AF_INET, SOCK_STREAM, 0) < 0)) {
+    if ((socketfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 	fprintf(stderr, "Error opening socket.\n");
 	exit(1);
     }
 
-    if (setsockopt(listenfd, SOL,SOCKET, SO_REUSEADDR, (const void *)&optval, sizeof(int)) < 0) {
-	fprintf(stderr, "Error in socket.\n");
+    if (setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, (const void *)&optval , sizeof(int)) < 0) {
+	fprintf(stderr, "Error in socket. %s.\n", strerror(errno));
 	exit(1);
     }
     
-    bzero((char *)&aserveraddr, sizeof(serveraddr));
+    bzero((char *)&serveraddr, sizeof(serveraddr));
     serveraddr.sin_family = AF_INET;
     serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
     serveraddr.sin_port = htons((unsigned short) port);
     
-    if (bind(socketfd, my_addr, sizeof(sockaddr_in)) < 0) {
-	fprintf(stderr, "Error binding socket.\n");
+    if (bind(socketfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0) {
+	fprintf(stderr, "Error binding socket. %s.\n", strerror(errno));
 	exit(1);
     }
 
-    if (listen(socket, LISTENQ) < 0) {
+    if (listen(socketfd, 1024) < 0) {
 	fprintf(stderr, "Error listening to socket.\n");
 	exit(1);
     }
 
     for (;;) {
-	connfd = accept(socket, clientaddr, &sizeof(clientaddr));
+
+	// new connected socket
+	int clientlen = sizeof(clientaddr);
+	if ((connfd = accept(socketfd, (struct sockaddr *)&clientaddr, (socklen_t *)&clientlen) < 0)) {
+	    fprintf(stderr, "Error acceping connection.\n");
+	    exit(1);
+	}
+	
+	printf("I think this works");
+	close(connfd);
 	// run connfd
 	// close connection if non-persistent
     }
