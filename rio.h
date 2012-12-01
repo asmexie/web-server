@@ -5,13 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
 #include <errno.h>
-#include <sys/socket.h>
-//#include <netdb.h>
-//#include <netinet/in.h>
-//#include <arpa/inet.h>
+#include <string.h>
 
 /* Persistent state for the robust I/O (Rio) package */
 /* $begin rio_t */
@@ -24,6 +19,7 @@ typedef struct {
 } rio_t;
 /* $end rio_t */
 
+/* Unix Error Handler */
 void unix_error(char *msg);
 
 /* Rio (Robust I/O) package */
@@ -41,3 +37,4 @@ ssize_t Rio_readnb(rio_t *rp, void *usrbuf, size_t n);
 ssize_t Rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen);
 
 #endif /* __RIO_H__ */
+/* rio.h */

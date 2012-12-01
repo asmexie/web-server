@@ -13,7 +13,7 @@ void unix_error(char *msg) /* unix-style error */
     fprintf(stderr, "%s: %s\n", msg, strerror(errno));
     exit(0);
 }
-/* $end unixerror *
+/* $end unixerror */
 
 /*
  * rio_readn - robustly read n bytes (unbuffered)
@@ -208,3 +208,4 @@ ssize_t Rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen)
 	unix_error("Rio_readlineb error");
     return rc;
 } 
+
