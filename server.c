@@ -11,7 +11,11 @@
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+
 #include "rio.h"
+#include "thread-pool/threadpool.h"
+
+#define THREADS 20
 
 static void usage(char *progname)
 {
@@ -24,40 +28,6 @@ static void usage(char *progname)
     
     exit(EXIT_SUCCESS);
 }
-
-/*static void open_socket(int port)
-{
-    int listenfd, optval = 1;
-    struct sockaddr_in serveraddr;
-
-    // open socket
-    if ((listenfd = socket(AF_INET, SOCK_STREAM, 0) < 0)) {
-	fprintf(stderr, "Error opening socket.\n");
-	exit(1);
-    }
-    
-    if (setsockopt(listenfd, SOL,SOCKET, SO_REUSEADDR, (const void *)&optval, sizeof(int)) < 0) {
-	fprintf(stderr, "Error in socket.\n");
-	exit(1);
-    }
-
-    bzero((char *)&aserveraddr, sizeof(serveraddr));
-    serveraddr.sin_family = AF_INET;
-    serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    serveraddr.sin_port = htons((unsigned short) port);
-    if (bind(listenfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0) {
-	fprintf(stderr, "Error binding socket address to port.\n");
-	exit(1);
-    }
-
-    if (listen(listenfd, LISTENQ) < 0) {
-	fprintf(stderr, "Error listening to socket.\n");
-	exit(1);
-    }
-
-    return listenfd;    
-    }*/
-	   
 
 int main(int argc, char **argv)
 {
@@ -103,11 +73,12 @@ int main(int argc, char **argv)
 	}
     }
 
+    // socket setup -- move to a different function perhaps?
+
     int socketfd, connfd, optval = 1;
     struct sockaddr_in serveraddr;
     struct sockaddr_in clientaddr;
 
-    // open socket
     if ((socketfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 	fprintf(stderr, "Error opening socket.\n");
 	exit(1);
@@ -133,6 +104,10 @@ int main(int argc, char **argv)
 	exit(1);
     }
 
+    
+    // thread pool setup -- perhaps new function?
+    struct thread_pool *pool = thread_pool_new(THREADS);
+    
     for (;;) {
 	// new connected socket
 	int clientlen = sizeof(clientaddr);
@@ -140,10 +115,12 @@ int main(int argc, char **argv)
 	    fprintf(stderr, "Error acceping connection.\n");
 	    exit(1);
 	}
-	close(connfd);
+	close(connfd);	
 	// run connfd
 	// close connection if non-persistent
     }
+
+    thread_pool_shutdown(pool);
 
     return 0;
 }

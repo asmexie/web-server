@@ -6,9 +6,10 @@
 CC = gcc
 CFLAGS = -Wall -Werror -Wmissing-prototypes
 OBJS = server.o rio.o
+LDLIBS = -lpthread
 
-all: $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o sysstatd
+all: threadpool $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) $(LDLIBS) -o sysstatd -L thread-pool -lthreadpool
 	rm *.o
 
 server.o: server.c
@@ -16,6 +17,9 @@ server.o: server.c
 
 rio.o: rio.c rio.h
 	$(CC) $(CFLAGS) -c rio.c
+
+threadpool:
+	cd thread-pool; make clean threadpool
 
 clean:
 	rm -f *~ *.o sysstatd
