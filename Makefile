@@ -12,7 +12,7 @@ all: threadpool $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LDLIBS) -o sysstatd -L thread-pool -lthreadpool
 	rm *.o
 
-server.o: server.c
+server.o: server.h server.c
 	$(CC) $(CFLAGS) -c server.c
 
 rio.o: rio.c rio.h
