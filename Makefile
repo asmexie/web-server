@@ -8,7 +8,7 @@ CFLAGS = -Wall -Werror -Wmissing-prototypes
 OBJS = server.o rio.o
 LDLIBS = -lpthread
 
-all: threadpool $(OBJS)
+all: $(OBJS)
 	$(CC) $(CFLAGS) $(OBJS) $(LDLIBS) -o sysstatd -L thread-pool -lthreadpool
 	rm *.o
 
