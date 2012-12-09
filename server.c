@@ -160,102 +160,102 @@ static void process_http(int *fd)
 
     /* Parse URI from GET request */
     is_static = parse_uri(uri, filename, cgiargs);
+    
 
-    /* /proc/loadavg */
-    if (strstr(uri, "loadavg") != NULL) {
+	/* /proc/loadavg */
+	if (strncmp(uri, "/loadavg\0", sizeof("/loadavg\0")-1) == 0 || strncmp(uri, "/loadavg?", sizeof("/loadavg?")-1) == 0) {
 
-	FILE *fp;
-	fp = fopen("/proc/loadavg", "r");
-
-	if (fp) {
-
-	    char loadbuf[256];
-	    fgets(loadbuf, sizeof(loadbuf), fp);
-
-	    float loadavg1;
-	    float loadavg2;
-	    float loadavg3;
-	    int running;
-	    char sep;
-	    int total;
-
-	    sscanf(loadbuf, "%f %f %f %d %c %d", &loadavg1, &loadavg2, &loadavg3, &running, &sep, &total);
-
-	    char load_json[256];
-	    sprintf(load_json, "{\"total_threads\": \"%d\", \"loadavg\": [\"%.2f\", \"%.2f\", \"%.2f\"], \"running_threads\": \"%d\"}", total, loadavg1, loadavg2, loadavg3, running);
-
-	    char callbackbuf[256];	   
-	    if (parse_callback(uri, callbackbuf) > 0) {
-		char returnbuf[256];
-		sprintf(returnbuf, "%s(%s)", callbackbuf, load_json);
-		response(*fd, returnbuf, "application/javascript");
-	    }
-	    
-	    else
-		response(*fd, load_json, "application/json");
-		
-	}
+		FILE *fp;
+		fp = fopen("/proc/loadavg", "r");
 	
-	fclose(fp);	
-    }
-
-    /* /proc/meminfo */
-    else if (strstr(uri, "meminfo") != NULL) {
+		if (fp) {
 	
-	FILE *fp;
-	fp = fopen("/proc/meminfo", "r");
-
-	if (fp) {
-	    
-	    char line[256];
-	    char membuf[1024];
-	    strcpy(membuf, "{");
-	    int flag = 0;
-	    
-	    while (fgets(line, sizeof(line), fp)) {
-
-		if (flag != 0) {
-		    strcat(membuf, ", ");
+			char loadbuf[256];
+			fgets(loadbuf, sizeof(loadbuf), fp);
+	
+			float loadavg1;
+			float loadavg2;
+			float loadavg3;
+			int running;
+			char sep;
+			int total;
+	
+			sscanf(loadbuf, "%f %f %f %d %c %d", &loadavg1, &loadavg2, &loadavg3, &running, &sep, &total);
+	
+			char load_json[256];
+			sprintf(load_json, "{\"total_threads\": \"%d\", \"loadavg\": [\"%.2f\", \"%.2f\", \"%.2f\"], \"running_threads\": \"%d\"}", total, loadavg1, loadavg2, loadavg3, running);
+	
+			char callbackbuf[256];	   
+			if (parse_callback(uri, callbackbuf) > 0) {
+			char returnbuf[256];
+			sprintf(returnbuf, "%s(%s)", callbackbuf, load_json);
+			response(*fd, returnbuf, "application/javascript");
+			}
+			
+			else
+			response(*fd, load_json, "application/json");
+			
 		}
-
-		char title[64];
-		long memory;
-		char skip[5];
 		
-		sscanf(line, "%s %lu %s", title, &memory, skip);
-
-		title[strlen(title)-1] = '\0';
-		
-		char tempbuf[256];
-		sprintf(tempbuf, "\"%s\": \"%lu\"", title, memory);
-		strcat(membuf, tempbuf);
-		flag = 1;
-	    }
-
-	    strcat(membuf, "}");
-	    
-	    char callbackbuf[256];	   
-	    if (parse_callback(uri, callbackbuf) > 0) {
-		char returnbuf[256];
-		sprintf(returnbuf, "%s(%s)", callbackbuf, membuf);
-		response(*fd, returnbuf, "application/javascript");
-	    }
-	    
-	    else
-		response(*fd, membuf, "application/json");
-	}
+		fclose(fp);	
+		}
 	
-	fclose(fp);
-    }
+	/* /proc/meminfo */
+	else if (strncmp(uri, "/meminfo\0", sizeof("/meminfo\0")-1) == 0 || strncmp(uri, "/meminfo?", sizeof("/meminfo?")-1) == 0) {
+		
+		FILE *fp;
+		fp = fopen("/proc/meminfo", "r");
+	
+		if (fp) {
+			
+			char line[256];
+			char membuf[1024];
+			strcpy(membuf, "{");
+			int flag = 0;
+			
+			while (fgets(line, sizeof(line), fp)) {
+	
+			if (flag != 0) {
+				strcat(membuf, ", ");
+			}
+	
+			char title[64];
+			long memory;
+			char skip[5];
+			
+			sscanf(line, "%s %lu %s", title, &memory, skip);
+	
+			title[strlen(title)-1] = '\0';
+			
+			char tempbuf[256];
+			sprintf(tempbuf, "\"%s\": \"%lu\"", title, memory);
+			strcat(membuf, tempbuf);
+			flag = 1;
+			}
+	
+			strcat(membuf, "}");
+			
+			char callbackbuf[256];	   
+			if (parse_callback(uri, callbackbuf) > 0) {
+			char returnbuf[256];
+			sprintf(returnbuf, "%s(%s)", callbackbuf, membuf);
+			response(*fd, returnbuf, "application/javascript");
+			}
+			
+			else
+			response(*fd, membuf, "application/json");
+		}
+	
+		fclose(fp);
+	}
 
-    else {
+	else {
+		clienterror(*fd, filename, "404", "Not Found",
+			"Not found");
+		return;
+	}
 
-	///// THROW OUT AN ERROR
-	char b[1024];
-	sprintf(b, "it is: %d with uri: %s", strncmp(uri, "/loadavg", strlen("/loadavg")), uri);
-	response(*fd, b, "application/json");
-    }
-
+	close(*fd);
     
     /*if (stat(filename, &sbuf) < 0) {                     //line:netp:doit:beginnotfound
 	clienterror(fd, filename, "404", "Not found",
@@ -280,7 +280,6 @@ static void process_http(int *fd)
 	serve_dynamic(fd, filename, cgiargs);            //line:netp:doit:servedynamic
     }*/
 
-    close(*fd);
 }
 
 /*
@@ -291,38 +290,43 @@ static size_t parse_callback(char *uri, char *callback)
 {
     char *ptr;
     ptr = index(uri, '?');
-
-    if (ptr && strncmp(ptr, "?callback=", sizeof("?callback=")) > 0) {
-
-	ptr = index(uri, '=');
-
-	if (ptr) {
-	    ptr++;
-
-	    int i = 0;
-
-	    while (*ptr && *ptr != '&') {
-
-		int c = ptr[0];
-		if ((c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c == 46 || (c >= 48 && c <= 57) || c == 95) {
-		    callback[i] = *ptr;
-		    i++;
-		    ptr++;
+    fflush(stdout);
+    
+    if(ptr) {
+		while (ptr) {
+			ptr++;
+			if (strncmp(ptr, "callback=", sizeof("callback=")-1) == 0) {
+				
+				ptr = index(ptr, '=');
+				int pass = 0;
+			
+				if (ptr) {
+					ptr++;
+			
+					int i = 0;
+			
+					while (*ptr && *ptr != '&') {
+			
+						int c = ptr[0];
+						if ((c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c == 46 || (c >= 48 && c <= 57) || c == 95) {
+							callback[i] = *ptr;
+							i++;
+							ptr++;
+						} else {
+							pass = 1;
+						}
+					}
+					if(pass == 0) {
+						callback[i] = '\0';
+						return sizeof(callback);
+					}
+				}
+			} else { 
+				ptr = index(ptr, '&');
+			}
 		}
-
-		else
-		    return 0;
-	    }
-	    
-	    return sizeof(callback);
 	}
-
-	else
-	    return 0;
 	
-    }
-
-    else
 	return 0;
 }
 
