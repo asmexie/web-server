@@ -187,7 +187,7 @@ static void process_http(int *fd)
 	    char callbackbuf[256];	   
 	    if (parse_callback(uri, callbackbuf) > 0) {
 		char returnbuf[256];
-		sprintf(returnbuf, "%s({%s})", callbackbuf, load_json);
+		sprintf(returnbuf, "%s(%s)", callbackbuf, load_json);
 		response(*fd, returnbuf, "application/javascript");
 	    }
 	    
@@ -237,7 +237,7 @@ static void process_http(int *fd)
 	    char callbackbuf[256];	   
 	    if (parse_callback(uri, callbackbuf) > 0) {
 		char returnbuf[256];
-		sprintf(returnbuf, "%s({%s})", callbackbuf, membuf);
+		sprintf(returnbuf, "%s(%s)", callbackbuf, membuf);
 		response(*fd, returnbuf, "application/javascript");
 	    }
 	    
