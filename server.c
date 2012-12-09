@@ -113,19 +113,24 @@ int main(int argc, char **argv)
     struct thread_pool *pool = thread_pool_new(THREADS);
     
     for (;;) {
-	// new connected socket
-	int clientlen = sizeof(clientaddr);
-
-	//printf("The ID of main thread is: %u\n", (unsigned int)pthread_self());
-
-	if ((connfd = accept(socketfd, (struct sockaddr *)&clientaddr, (socklen_t *)&clientlen)) <= 0) {
-	    fprintf(stderr, "Error acceping connection.\n");
-	    exit(1);
-	}
-
-	// execute request in a different thread
-	struct future * f;
-	f = thread_pool_submit(pool, (thread_pool_callable_func_t)process_http, &connfd);
+		// new connected socket
+		int clientlen = sizeof(clientaddr);
+	
+		//printf("The ID of main thread is: %u\n", (unsigned int)pthread_self());
+	
+		if ((connfd = accept(socketfd, (struct sockaddr *)&clientaddr, (socklen_t *)&clientlen)) <= 0) {
+			fprintf(stderr, "Error acceping connection.\n");
+			exit(1);
+		}
+	
+		// execute request in a different thread
+		struct future * f;
+		f = thread_pool_submit(pool, (thread_pool_callable_func_t)process_http, &connfd);
+		
+		if(future_get(f)) {
+			//close(connfd);
+			future_free(f);
+		}
     }
 
     thread_pool_shutdown(pool);
