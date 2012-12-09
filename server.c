@@ -251,10 +251,6 @@ static void process_http(int *fd)
 	response(*fd, b, "application/json");
     }
 
-
-
-    //close(fd);
-
     
     /*if (stat(filename, &sbuf) < 0) {                     //line:netp:doit:beginnotfound
 	clienterror(fd, filename, "404", "Not found",
@@ -277,7 +273,9 @@ static void process_http(int *fd)
 	    return;
 	}
 	serve_dynamic(fd, filename, cgiargs);            //line:netp:doit:servedynamic
-    }*/   
+    }*/
+
+    close(*fd);
 }
 
 /*
