@@ -141,7 +141,6 @@ int main(int argc, char **argv)
 	  }*/
     }
     
-    //close(connfd);
     thread_pool_shutdown(pool);
     
     return 0;
@@ -365,6 +364,7 @@ static void process_http(int fd)
 
 /*
  * read_requesthdrs - read and parse HTTP request headers
+ * Taken from Tiny server
  */
 ssize_t read_requesthdrs(rio_t *rp) 
 {
@@ -382,6 +382,7 @@ ssize_t read_requesthdrs(rio_t *rp)
 /*
  * parse_uri - parse URI into filename and CGI args
  *             return 0 if dynamic content, 1 if static
+ * Taken from Tiny server and slightly modified
  */
 int parse_uri(char *uri, char *filename, char *cgiargs) 
 {
@@ -436,6 +437,7 @@ void response_ok(int fd, char *msg, char *content_type, char *version)
 
 /*
  * clienterror - returns an error message to the client
+ * Taken from Tiny server
  */
 void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg, char *version) 
 {
@@ -457,11 +459,11 @@ void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longms
     Rio_writen(fd, buf, strlen(buf));
     Rio_writen(fd, body, strlen(body));
 }
-/* $end clienterror */
 
 /*
- * parse_callback - parse URI and returns callback buffer size
- *                  return 0 if no callback exists
+ * parse_callback
+ * parse URI and returns callback buffer size
+ * return 0 if no callback exists
  */
 static size_t parse_callback(char *uri, char *callback)
 {
@@ -525,9 +527,9 @@ static void run_loop(void) {
 }
 
 /*
- * serve_static - copy a file back to the client 
+ * serve_static - copy a file back to the client
+ * Taken from Tiny server
  */
-/* $begin serve_static */
 void serve_static(int fd, char *filename, int filesize) 
 {
     int srcfd;
@@ -536,7 +538,7 @@ void serve_static(int fd, char *filename, int filesize)
     /* Send response headers to client */
     get_filetype(filename, filetype);       //line:netp:servestatic:getfiletype
     sprintf(buf, "HTTP/1.0 200 OK\r\n");    //line:netp:servestatic:beginserve
-    sprintf(buf, "%sServer: Tiny Web Server\r\n", buf);
+    sprintf(buf, "%sServer: Sysstatd Web Server\r\n", buf);
     sprintf(buf, "%sContent-length: %d\r\n", buf, filesize);
     sprintf(buf, "%sContent-type: %s\r\n\r\n", buf, filetype);
     Rio_writen(fd, buf, strlen(buf));       //line:netp:servestatic:endserve
@@ -551,6 +553,7 @@ void serve_static(int fd, char *filename, int filesize)
 
 /*
  * get_filetype - derive file type from file name
+ * Taken from Tiny server
  */
 void get_filetype(char *filename, char *filetype) 
 {
@@ -567,12 +570,11 @@ void get_filetype(char *filename, char *filetype)
     else
 	strcpy(filetype, "text/plain");
 }  
-/* $end serve_static */
 
 /*
  * serve_dynamic - run a CGI program on behalf of the client
+ * Taken from Tiny server and slightly modified
  */
-/* $begin serve_dynamic */
 void serve_dynamic(int fd, char *filename, char *cgiargs) 
 {
     char buf[MAXLINE], *emptylist[] = { NULL };
@@ -580,7 +582,7 @@ void serve_dynamic(int fd, char *filename, char *cgiargs)
     /* Return first part of HTTP response */
     sprintf(buf, "HTTP/1.0 200 OK\r\n"); 
     Rio_writen(fd, buf, strlen(buf));
-    sprintf(buf, "Server: Tiny Web Server\r\n");
+    sprintf(buf, "Server: Sysstatd Web Server\r\n");
     Rio_writen(fd, buf, strlen(buf));
   
     if (fork() == 0) { /* child */ //line:netp:servedynamic:fork
@@ -594,6 +596,4 @@ void serve_dynamic(int fd, char *filename, char *cgiargs)
 	fprintf(stderr, "Wait Error.\n");
 	exit(1);
     }
-    //wait(NULL); /* Parent waits for and reaps child */ //line:netp:servedynamic:wait
 }
-/* $end serve_dynamic */
