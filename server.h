@@ -18,6 +18,7 @@ struct memory {
 };
 
 static void process_http(int fd);
+static void run_loop(void);
 ssize_t read_requesthdrs(rio_t *rp);
 void response_ok(int fd, char *msg, char *content_type, char *version);
 void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longmsg, char *version);

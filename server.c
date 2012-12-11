@@ -18,10 +18,13 @@
 #include <signal.h>
 #include <sys/wait.h>
 
+#include <pthread.h>
+
 #include "server.h"
 #include "thread-pool/threadpool.h"
 
 static char *custom_path;
+static struct thread_pool *pool;
 
 static void usage(char *progname)
 {
@@ -118,9 +121,9 @@ int main(int argc, char **argv)
 	exit(1);
     }
 
-    struct thread_pool *pool = thread_pool_new(THREADS);
+    pool = thread_pool_new(THREADS);
     struct sockaddr_in clientaddr;
-    
+
     for (;;) {
 	// new connected socket
 	int clientlen = sizeof(clientaddr);
@@ -302,7 +305,13 @@ static void process_http(int fd)
 
 	else if (strncmp(uri, "/runloop", strlen("/runloop")) == 0) {
 
-	    pid_t pid;
+	    response_ok(fd, "<html>\n<body>\n<p>Started 15 second spin.</p>\n</body>\n</html>", "text/html", version);
+	    struct future *f = thread_pool_submit(pool, (thread_pool_callable_func_t)run_loop, (int *)0);
+	    if (future_get(f))
+		future_free(f);
+	    
+
+	    /*	    pid_t pid;
 	    pid = fork();
 
 	    if (pid == 0) {
@@ -317,11 +326,14 @@ static void process_http(int fd)
 		break;
 	    }
 
+	    
+
 	    int status;
 	    wait(&status);
+	    */
 
 	    // child exited
-	    if (WIFEXITED(status)) {
+	    /*	    if (WIFEXITED(status)) {
 		FILE *fp;
 		fp = fopen("/proc/loadavg", "r");
 		
@@ -335,22 +347,22 @@ static void process_http(int fd)
 		    float loadavg3;
 		    
 		    sscanf(loadbuf, "%f %f %f", &loadavg1, &loadavg2, &loadavg3);
-		    response_ok(fd, "<html>\n<body>\n<p>There was a load average spike.</p>\n</body>\n</html>", "text/html", version);
-		}
-	    }
+		    
+		    }
+		    }*/
 
-	    else {
+	    /*else {
 		char respbuf[256];
 		sprintf(respbuf, "<html>\n<body>\n<p>There was a problem in your request.</p>\n</body>\n</html>");
 		response_ok(fd, respbuf, "text/html", version);
-	    }
+		}*/
 	}
 
 	else if (strncmp(uri, "/allocanon", strlen("/allocanon")) == 0) {
 
-	    void *block = mmap(NULL, 67108864, PROT_READ, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+	    void *block = mmap(0, 67108864, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 
-	    if (!block)
+	    if (block == MAP_FAILED)
 		perror("mmap() failed\n");
 
 	    else {
@@ -548,6 +560,16 @@ static size_t parse_callback(char *uri, char *callback)
     }
     
     return 0;
+}
+
+/*
+ * 15 second runloop
+ */
+static void run_loop(void) {
+    while (1) {
+	sleep(15);
+	break;
+    }
 }
 
 /*
