@@ -331,10 +331,9 @@ static void process_http(int fd)
 
 		struct list_elem *e = list_pop_back(&memory_list);
 		struct memory *mem = list_entry(e, struct memory, elem);
-
-		int success = munmap(mem->block, sizeof(*mem->block));
+		int success = munmap(mem->block, 67108864);
 		
-		if (success < 0)
+		if (success != 0)
 		    fprintf(stderr, "munmap() failed %s\n", strerror(errno));
 
 		else {
