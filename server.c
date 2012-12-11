@@ -149,6 +149,7 @@ int main(int argc, char **argv)
 
 static void process_http(int fd)
 {
+
     int is_static;
     struct stat sbuf;
     char buf[MAXLINE], method[MAXLINE], uri[MAXLINE], version[MAXLINE];
@@ -163,9 +164,10 @@ static void process_http(int fd)
     while (1) {
 	
 	/* Read request line and headers */
-	if (Rio_readlineb(&rio, buf, MAXLINE) <= 0)
+	ssize_t x;
+	if ((x = Rio_readlineb(&rio, buf, MAXLINE)) <= 0)
 	    break;
-	
+
 	sscanf(buf, "%s %s %s", method, uri, version);
 	
 	if (strcasecmp(method, "GET")) {
@@ -183,12 +185,6 @@ static void process_http(int fd)
 		continue;
 	    }
 	}
-
-	//if (rio.rio_buf[strlen(rio.rio_buf)-1] != '\n' && rio.rio_buf[strlen(rio.rio_buf)-2] != '\r')
-	//  break;
-	
-	//if (rio.rio_buf[strlen(rio.rio_buf)-1] != '\n' && rio.rio_buf[strlen(rio.rio_buf)-2] != '\r')
-	//  break;
 
 	/* Parse URI from GET request */
 	is_static = parse_uri(uri, filename, cgiargs);
@@ -224,8 +220,9 @@ static void process_http(int fd)
 		    response_ok(fd, returnbuf, "application/javascript", version);
 		}
 			
-		else
+		else {
 		    response_ok(fd, load_json, "application/json", version);
+		}
 	    }
 	}
 	
@@ -376,7 +373,8 @@ ssize_t read_requesthdrs(rio_t *rp)
     ssize_t size = Rio_readlineb(rp, buf, MAXLINE);
     while(strcmp(buf, "\r\n")) {
 	size = Rio_readlineb(rp, buf, MAXLINE);
-	//printf("Buf: %s", buf);
+	if (size <= 0)
+	    break;
     }
     return size;
 }
@@ -519,8 +517,8 @@ static size_t parse_callback(char *uri, char *callback)
  */
 static void run_loop(void) {
     while (1) {
-	sleep(15);
-	break;
+	//sleep(15);
+	//break;
     }
 }
 
