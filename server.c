@@ -304,68 +304,20 @@ static void process_http(int fd)
 	}
 
 	else if (strncmp(uri, "/runloop", strlen("/runloop")) == 0) {
-
 	    response_ok(fd, "<html>\n<body>\n<p>Started 15 second spin.</p>\n</body>\n</html>", "text/html", version);
-	    struct future *f = thread_pool_submit(pool, (thread_pool_callable_func_t)run_loop, (int *)0);
-	    if (future_get(f))
-		future_free(f);
-	    
-
-	    /*	    pid_t pid;
-	    pid = fork();
-
-	    if (pid == 0) {
-		while (1) {
-		    sleep(15);
-		    break;
-		}
-	    }
-
-	    else if (pid < 0) {
-		fprintf(stderr, "Fork Error.\n");
-		break;
-	    }
-
-	    
-
-	    int status;
-	    wait(&status);
-	    */
-
-	    // child exited
-	    /*	    if (WIFEXITED(status)) {
-		FILE *fp;
-		fp = fopen("/proc/loadavg", "r");
-		
-		if (fp) {		    
-		    char loadbuf[256];
-		    fgets(loadbuf, sizeof(loadbuf), fp);
-		    fclose(fp);
-		    
-		    float loadavg1;
-		    float loadavg2;
-		    float loadavg3;
-		    
-		    sscanf(loadbuf, "%f %f %f", &loadavg1, &loadavg2, &loadavg3);
-		    
-		    }
-		    }*/
-
-	    /*else {
-		char respbuf[256];
-		sprintf(respbuf, "<html>\n<body>\n<p>There was a problem in your request.</p>\n</body>\n</html>");
-		response_ok(fd, respbuf, "text/html", version);
-		}*/
+	    thread_pool_submit(pool, (thread_pool_callable_func_t)run_loop, (int *)0);
 	}
 
 	else if (strncmp(uri, "/allocanon", strlen("/allocanon")) == 0) {
 
-	    void *block = mmap(0, 67108864, PROT_READ, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	    void *block = mmap(0, 67108864, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
 
 	    if (block == MAP_FAILED)
 		perror("mmap() failed\n");
 
 	    else {
+
+		memset(block, '\0', 67108864);
 
 		struct memory *e = (struct memory *)malloc(sizeof(struct memory));
 		e->block = block;
