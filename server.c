@@ -517,10 +517,11 @@ static size_t parse_callback(char *uri, char *callback)
  */
 static void run_loop(void) {
     time_t start;
-    start = clock();    
-    while ((clock() - start) / CLOCKS_PER_SEC ) {	
+    start = time(NULL);
+    while ((time(NULL) - start) < 15) {
 	continue;
     }
+    return;
 }
 
 /*
