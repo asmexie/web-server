@@ -516,9 +516,10 @@ static size_t parse_callback(char *uri, char *callback)
  * 15 second runloop
  */
 static void run_loop(void) {
-    while (1) {
-	//sleep(15);
-	//break;
+    time_t start;
+    start = clock();    
+    while ((clock() - start) / CLOCKS_PER_SEC ) {	
+	continue;
     }
 }
 
