@@ -92,58 +92,6 @@ int main(int argc, char **argv)
     int socketfd, optval = 1;
     intptr_t connfd;
 
-
-
-    /* IPv6 */
-    /*
-    struct addrinfo *ai;
-    struct addrinfo hints;
-    memset (&hints, '\0', sizeof (hints));
-    hints.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
-    hints.ai_socktype = SOCK_STREAM;
-    int e = getaddrinfo (NULL, "echo", &hints, &ai);
-    if (e != 0)
-	error (EXIT_FAILURE, 0, "getaddrinfo: %s", gai_strerror (e));
-    int nfds = 0;
-    struct addrinfo *runp = ai;
-    while (runp != NULL) {
-	++nfds;
-	runp = runp->ai_next;
-    }
-
-    struct pollfd fds[nfds];
-    
-    for (nfds = 0, runp = ai; runp != NULL; runp = runp->ai_next) {	
-
-	fds[nfds].fd = socket (runp->ai_family, runp->ai_socktype, runp->ai_protocol);
-	if (fds[nfds].fd == -1)
-	    error(EXIT_FAILURE, errno, "socket");
-
-	fds[nfds].events = POLLIN;
-	int opt = 1;
-	setsockopt (fds[nfds].fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof (opt));
-
-	if (bind (fds[nfds].fd,runp->ai_addr, runp->ai_addrlen) != 0)
-	    {
-		if (errno != EADDRINUSE)
-		    error (EXIT_FAILURE, errno, "bind");
-		close (fds[nfds].fd);
-	    }
-
-	else {
-	    if (listen (fds[nfds].fd, SOMAXCONN) != 0)
-		error (EXIT_FAILURE, errno, "listen");
-	    ++nfds;
-	}
-    }
-    freeaddrinfo (ai);
-    */
-	    
-		  
-
-
-
-
     if ((socketfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 	fprintf(stderr, "Error opening socket.\n");
 	exit(1);
@@ -222,8 +170,8 @@ static void process_http(int fd)
 	    continue;
 	}
 	
-	ssize_t size = read_requesthdrs(&rio);	
-	if (size < 0) {
+	ssize_t size = read_requesthdrs(&rio);
+	if (size <= 0) {
 	    if (strncmp(version, "HTTP/1.0", 8) == 0) {
 		break;
 	    }
@@ -232,6 +180,12 @@ static void process_http(int fd)
 		continue;
 	    }
 	}
+
+	//if (rio.rio_buf[strlen(rio.rio_buf)-1] != '\n' && rio.rio_buf[strlen(rio.rio_buf)-2] != '\r')
+	//  break;
+	
+	//if (rio.rio_buf[strlen(rio.rio_buf)-1] != '\n' && rio.rio_buf[strlen(rio.rio_buf)-2] != '\r')
+	//  break;
 
 	/* Parse URI from GET request */
 	is_static = parse_uri(uri, filename, cgiargs);
