@@ -1,18 +1,16 @@
 /*
  * Widgets that plot data obtained from the sys stat web service.
- * 
+ *
  * Supports
  *
  * <div id="meminfo"> </div>
  * <div id="loadavg"> </div>
- *
- * Written by Godmar Back for CS 3214 Fall 2009
  */
 (function () {
 
 var jqplotbase = "/files/";
 
-// loadScript taken from 
+// loadScript taken from
 // http://devblog.techhead.biz/2009/04/dynamically-load-external-javascript-in.html
 // (code mirrors $.getScript)
 function loadScript(src, callback) {
@@ -87,7 +85,7 @@ function dowithJQuery($) {
             seriesDefaults:{neighborThreshold:0, showMarker: false},
             series:[
                 {
-                    fill: true, fillAlpha:0.8, 
+                    fill: true, fillAlpha:0.8,
                     shadow:false, showLabel: false,
                 }
             ],
@@ -97,13 +95,13 @@ function dowithJQuery($) {
               yoffset: 100
             },
             axesDefaults:{
-                autoscale: true, 
+                autoscale: true,
                 useSeriesColor: true
             },
             title : title,
             axes: {
                 yaxis: {
-                    tickOptions: {formatString:"%.1f"}, 
+                    tickOptions: {formatString:"%.1f"},
                     min: -0.001
                 },
                 xaxis: {
@@ -159,7 +157,7 @@ function dowithJQuery($) {
                     tickOptions: {
                         formatString: "%.0dM"
                     },
-                    min: 0, 
+                    min: 0,
                     max: axismax
                 }
             }
@@ -178,12 +176,12 @@ function dowithJQuery($) {
                     var MB = 1024;
                     plot = showMemory(plot, $div.attr('id'),
                         [
-                            { value: data.Cached / MB, label: "Cached" }, 
-                            { value: data.Buffers / MB, label: "Buffers" }, 
-                            { value: (data.MemTotal 
-                                      - data.MemFree 
-                                      - data.Cached 
-                                      - data.Buffers) / MB, label: "Anonymous" }, 
+                            { value: data.Cached / MB, label: "Cached" },
+                            { value: data.Buffers / MB, label: "Buffers" },
+                            { value: (data.MemTotal
+                                      - data.MemFree
+                                      - data.Cached
+                                      - data.Buffers) / MB, label: "Anonymous" },
                             { value: data.MemFree / MB, label: "Free" }
                         ],
                         data.MemTotal / MB, url.match(/http:\/\/(.*):\d+/)[1]
@@ -221,7 +219,7 @@ function dowithJQuery($) {
             function update () {
                 $.getJSON(url + "/loadavg?callback=?", function (data) {
                     plot = updateLoadaveragePlot(
-                            plot, $div.attr('id'), Number(data.loadavg[0]), 
+                            plot, $div.attr('id'), Number(data.loadavg[0]),
                             $div.width(),   // # values, 1 per pixel
                             url.match(/http:\/\/(.*):\d+/)[1] + ": " +
                             data.running_threads + "/" + data.total_threads);
@@ -244,7 +242,7 @@ function dowithJQuery($) {
 
     var jqplotloaded = delay.add();
     $.getScript(jqplotbase + "jquery.jqplot.js", function () {
-        $.each([ "plugins/jqplot.barRenderer.js", 
+        $.each([ "plugins/jqplot.barRenderer.js",
                  "plugins/jqplot.categoryAxisRenderer.js"
                ],
                function (index, jsfile) {
